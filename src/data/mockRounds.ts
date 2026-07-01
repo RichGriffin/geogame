@@ -1,0 +1,87 @@
+import type { MockRound } from '../types/game';
+import { normalizeStreetViewRoundInput } from '../utils/streetView';
+
+const RAW_MOCK_ROUNDS: MockRound[] = [
+  {
+    id: 1,
+    landmark: 'Eiffel Tower',
+    location: 'Paris, France',
+    imageUrl:
+      'https://images.unsplash.com/photo-1609971757431-439cf7b4141b?w=1920&h=1080&fit=crop&auto=format',
+    thumbnailUrl:
+      'https://images.unsplash.com/photo-1609971757431-439cf7b4141b?w=200&h=200&fit=crop&auto=format',
+    hint: 'Iron lattice tower on the Champ de Mars',
+    answer: { lat: 48.8584, lng: 2.2945 },
+    panoramaId: 'Xta4ugN_QRTIo3XDFLujgw',
+    streetViewPov: { heading: 127, pitch: 5 },
+  },
+  {
+    id: 2,
+    landmark: 'Shibuya Crossing',
+    location: 'Tokyo, Japan',
+    imageUrl:
+      'https://images.unsplash.com/photo-1573455494060-c5595004fb6c?w=1920&h=1080&fit=crop&auto=format',
+    thumbnailUrl:
+      'https://images.unsplash.com/photo-1573455494060-c5595004fb6c?w=200&h=200&fit=crop&auto=format',
+    hint: 'Neon signs in an East Asian script illuminate a busy intersection at night.',
+    answer: { lat: 35.6595, lng: 139.7005 },
+    panoramaId: 'XlVh96-Z9lAI5tKrU2O4Yg',
+    streetViewPov: { heading: 48, pitch: 2 },
+  },
+  {
+    id: 3,
+    landmark: 'Times Square',
+    location: 'New York, USA',
+    imageUrl:
+      'https://images.unsplash.com/photo-1695147383484-621b933811d6?w=1920&h=1080&fit=crop&auto=format',
+    thumbnailUrl:
+      'https://images.unsplash.com/photo-1695147383484-621b933811d6?w=200&h=200&fit=crop&auto=format',
+    hint: 'Bright billboards and yellow cabs',
+    answer: { lat: 40.758, lng: -73.9855 },
+    panoramaId: 'ywskIOsAFskiKHt5fwIUWA',
+    streetViewPov: { heading: 210, pitch: 1 },
+  },
+  {
+    id: 4,
+    landmark: 'Sydney Harbour Bridge',
+    location: 'Sydney, Australia',
+    imageUrl:
+      'https://images.unsplash.com/photo-1598948485421-33a1655d3c18?w=1920&h=1080&fit=crop&auto=format',
+    thumbnailUrl:
+      'https://images.unsplash.com/photo-1598948485421-33a1655d3c18?w=200&h=200&fit=crop&auto=format',
+    hint: 'Iconic steel arch bridge at dusk',
+    answer: { lat: -33.8523, lng: 151.2108 },
+    panoramaId: '_TMu7QCnwWBKSlIyvxFh2g',
+    streetViewPov: { heading: 318, pitch: 4 },
+  },
+  {
+    id: 5,
+    landmark: 'Colosseum',
+    location: 'Rome, Italy',
+    imageUrl:
+      'https://images.unsplash.com/photo-1707342269520-03ca1dddc0fa?w=1920&h=1080&fit=crop&auto=format',
+    thumbnailUrl:
+      'https://images.unsplash.com/photo-1707342269520-03ca1dddc0fa?w=200&h=200&fit=crop&auto=format',
+    hint: 'Ancient amphitheatre in the city centre',
+    answer: { lat: 41.8902, lng: 12.4922 },
+    panoramaId: 'Z47FwC7ICZVNc2M7rWmIMg',
+    streetViewPov: { heading: 263, pitch: 3 },
+  },
+];
+
+export const MOCK_ROUNDS: MockRound[] = RAW_MOCK_ROUNDS.map((round) => {
+  const normalizedStreetView = normalizeStreetViewRoundInput(round);
+
+  return {
+    ...round,
+    answer: normalizedStreetView.answer,
+    ...(normalizedStreetView.panoramaId ? { panoramaId: normalizedStreetView.panoramaId } : {}),
+    streetViewPov: normalizedStreetView.streetViewPov,
+  };
+});
+
+export const LANDING_PANELS = [
+  MOCK_ROUNDS[1].imageUrl,
+  MOCK_ROUNDS[2].imageUrl,
+  MOCK_ROUNDS[3].imageUrl,
+];
