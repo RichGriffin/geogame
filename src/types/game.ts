@@ -19,8 +19,15 @@ export type MockRound = {
   streetViewPov?: StreetViewPov;
 };
 
+export type RoundSnapshot = {
+  landmark: string;
+  location: string;
+  answer: Coords;
+};
+
 export type RoundOutcome = {
   roundIndex: number;
+  round: RoundSnapshot;
   distanceKm: number;
   score: number;
   rating: string;

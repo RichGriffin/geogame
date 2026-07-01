@@ -3,7 +3,6 @@ import { FinalResultsScreen } from './screens/FinalResultsScreen';
 import { LandingScreen } from './screens/LandingScreen';
 import { RoundResultScreen } from './screens/RoundResultScreen';
 import { RoundScreen } from './screens/RoundScreen';
-import { MOCK_ROUNDS } from './data/mockRounds';
 
 export default function App() {
   const game = useGameState();
@@ -32,7 +31,6 @@ export default function App() {
       if (!state.lastOutcome) return null;
       return (
         <RoundResultScreen
-          round={MOCK_ROUNDS[state.lastOutcome.roundIndex]}
           outcome={state.lastOutcome}
           onNext={game.nextRound}
         />

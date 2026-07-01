@@ -46,6 +46,11 @@ function submitPin(state: State, pin: Coords): State {
   const score = scoreFromDistance(distanceKm);
   const outcome: RoundOutcome = {
     roundIndex: state.roundIndex,
+    round: {
+      landmark: round.landmark,
+      location: round.location,
+      answer: round.answer,
+    },
     distanceKm,
     score,
     rating: ratingFromScore(score),
@@ -72,8 +77,14 @@ function reducer(state: State, action: Action): State {
       if (state.phase !== 'round') return state;
       if (state.secondsRemaining <= 1) {
         if (state.pin) return submitPin(state, state.pin);
+        const round = MOCK_ROUNDS[state.roundIndex];
         const outcome: RoundOutcome = {
           roundIndex: state.roundIndex,
+          round: {
+            landmark: round.landmark,
+            location: round.location,
+            answer: round.answer,
+          },
           distanceKm: GAME_CONFIG.maxDistanceKm,
           score: 0,
           rating: ratingFromScore(0),

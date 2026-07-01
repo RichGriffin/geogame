@@ -5,6 +5,7 @@ import { loadMapsApi } from '../utils/mapsLoader';
 type NavigationDirection = 'up' | 'down' | 'left' | 'right' | 'center';
 type NavigationCommand = { direction: NavigationDirection; sequence: number } | null;
 type Pov = { heading: number; pitch: number };
+const STREET_VIEW_READY_TIMEOUT_MS = 6000;
 
 type StreetViewPanelProps = Readonly<{
   position: Coords;
@@ -51,6 +52,7 @@ export function StreetViewPanel({
   useEffect(() => {
     let cancelled = false;
     let listeners: google.maps.MapsEventListener[] = [];
+    let readyTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const getPanorama = (request: google.maps.StreetViewLocationRequest | google.maps.StreetViewPanoRequest) =>
       new Promise<{ data: google.maps.StreetViewPanoramaData | null; status: google.maps.StreetViewStatus }>(
@@ -90,7 +92,12 @@ export function StreetViewPanel({
         }
 
         if (!targetPanoId) {
-          const coordinateResult = await getPanorama({ location: position, radius: 50000 });
+          const coordinateResult = await getPanorama({
+            location: position,
+            radius: 50000,
+            source: google.maps.StreetViewSource.OUTDOOR,
+            preference: google.maps.StreetViewPreference.NEAREST,
+          });
           if (cancelled) return;
           if (coordinateResult.status !== google.maps.StreetViewStatus.OK || !coordinateResult.data?.location?.pano) {
             setHasError(true);
@@ -113,11 +120,20 @@ export function StreetViewPanel({
         });
 
         panoramaRef.current = panorama;
+        readyTimeout = setTimeout(() => {
+          if (cancelled || isReady) return;
+          setHasError(true);
+          onUnavailableChange?.(true);
+        }, STREET_VIEW_READY_TIMEOUT_MS);
         listeners = [
           panorama.addListener('status_changed', () => {
             if (cancelled) return;
             const status = panorama.getStatus();
             const ok = status === google.maps.StreetViewStatus.OK;
+            if (readyTimeout) {
+              clearTimeout(readyTimeout);
+              readyTimeout = null;
+            }
             setIsReady(ok);
             setHasError(!ok);
             if (ok) {
@@ -143,6 +159,10 @@ export function StreetViewPanel({
 
     return () => {
       cancelled = true;
+      if (readyTimeout) {
+        clearTimeout(readyTimeout);
+        readyTimeout = null;
+      }
       for (const listener of listeners) {
         listener.remove();
       }

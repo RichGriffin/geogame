@@ -106,6 +106,7 @@ function randomizeStreetViewRound(round: MockRound): MockRound {
 
   return {
     ...round,
+    landmark: `${hotspot.city} City Center`,
     location: `${hotspot.city}, ${hotspot.country}`,
     hint: `Randomized urban coordinates near ${hotspot.city}.`,
     answer: randomizedAnswer,

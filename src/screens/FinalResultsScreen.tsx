@@ -1,12 +1,11 @@
-import { MOCK_ROUNDS } from '../data/mockRounds';
 import { PillButton } from '../components/PillButton';
 import { formatDistance, formatScore } from '../utils/scoring';
 import type { RoundOutcome } from '../types/game';
 
-type FinalResultsScreenProps = {
+type FinalResultsScreenProps = Readonly<{
   outcomes: RoundOutcome[];
   onPlayAgain: () => void;
-};
+}>;
 
 export function FinalResultsScreen({ outcomes, onPlayAgain }: FinalResultsScreenProps) {
   const totalScore = outcomes.reduce((sum, o) => sum + o.score, 0);
@@ -34,13 +33,12 @@ export function FinalResultsScreen({ outcomes, onPlayAgain }: FinalResultsScreen
             </thead>
             <tbody>
               {outcomes.map((outcome) => {
-                const round = MOCK_ROUNDS[outcome.roundIndex];
                 return (
                   <tr key={outcome.roundIndex} className="border-b border-white/5">
                     <td className="px-4 py-3 text-muted">
                       {String(outcome.roundIndex + 1).padStart(2, '0')}
                     </td>
-                    <td className="px-4 py-3 text-white">{round.landmark}</td>
+                    <td className="px-4 py-3 text-white">{outcome.round.location}</td>
                     <td className="px-4 py-3 text-white">{formatDistance(outcome.distanceKm)}</td>
                     <td className="px-4 py-3 font-medium text-accent">
                       {formatScore(outcome.score)}
