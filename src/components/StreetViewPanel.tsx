@@ -90,7 +90,7 @@ export function StreetViewPanel({
         }
 
         if (!targetPanoId) {
-          const coordinateResult = await getPanorama({ location: position });
+          const coordinateResult = await getPanorama({ location: position, radius: 50000 });
           if (cancelled) return;
           if (coordinateResult.status !== google.maps.StreetViewStatus.OK || !coordinateResult.data?.location?.pano) {
             setHasError(true);

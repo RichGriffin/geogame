@@ -14,6 +14,7 @@ type RoundWithStreetView = MockRound & {
   panoramaId?: string;
   streetViewPov?: { heading: number; pitch: number };
 };
+const RANDOM_STREET_VIEW_ENABLED = import.meta.env.VITE_RANDOM_STREET_VIEW !== '0';
 
 type RoundScreenProps = Readonly<{
   round: MockRound;
@@ -71,6 +72,11 @@ export function RoundScreen({
           <RoundIndicator currentRound={roundNumber} />
           <div className="flex flex-col items-center gap-2">
             <Timer secondsRemaining={secondsRemaining} />
+            {RANDOM_STREET_VIEW_ENABLED ? (
+              <span className="rounded-full border border-blue-300/30 bg-blue-900/30 px-3 py-1 text-xs text-blue-100">
+                Random coordinate mode
+              </span>
+            ) : null}
             {fallbackActive ? (
               <span className="rounded-full border border-white/20 bg-black/35 px-3 py-1 text-xs text-white/80">
                 Street View unavailable - using fallback image

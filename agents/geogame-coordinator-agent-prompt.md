@@ -18,6 +18,17 @@ Read first:
 - implementation/agent-brief-backend.md (when available)
 - implementation/agent-brief-maps.md (when available)
 
+Authoritative team roster (use these lanes only unless user explicitly adds more):
+- Frontend lane: `agents/geogame-frontend-agent-prompt.md`
+- Backend lane: `agents/geogame-backend-agent-prompt.md`
+- Maps lane: `agents/geogame-maps-agent-prompt.md`
+
+Lane boundaries (strict):
+- FE lane owns renderer/UI flow work in `src/screens/*`, `src/components/*`, `src/hooks/*`.
+- BE lane owns Electron main/preload and IPC surfaces in `electron/*`.
+- Maps lane owns map/street-view data policy and map utility modules in `src/data/*` + `src/utils/streetView.ts`.
+- Do not assign work to the wrong lane. Re-route mismatch immediately in the same cycle.
+
 Operating constraints:
 - MVP only, minimal-change approach.
 - Google Maps API key is managed in the main process only; never expose it in the renderer.
@@ -55,6 +66,7 @@ Execution model (non-optional):
 - Coordinator delegates implementation to lane owners (FE/BE/Maps).
 - Default mode is delegation-first and parallelized execution.
 - For complex lane work, lane owners may spawn scoped engineer subagents.
+- Never collapse FE/BE/Maps into one mixed implementation lane for convenience.
 - Require every lane update to include:
   - STATUS: DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
   - files changed

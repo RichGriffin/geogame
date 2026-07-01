@@ -1,5 +1,19 @@
 import type { MockRound } from '../types/game';
 import { normalizeStreetViewRoundInput } from '../utils/streetView';
+import urbanLocationPool from './urbanLocationPool.json';
+
+const RANDOM_STREET_VIEW_ENABLED = import.meta.env.VITE_RANDOM_STREET_VIEW !== '0';
+const RANDOM_PITCH_RANGE = { min: -8, max: 8 };
+const RANDOM_COORDINATE_JITTER_DEGREES = 0.06;
+
+type UrbanLocation = {
+  city: string;
+  country: string;
+  lat: number;
+  lng: number;
+};
+
+const URBAN_LOCATIONS = urbanLocationPool as UrbanLocation[];
 
 const RAW_MOCK_ROUNDS: MockRound[] = [
   {
@@ -69,7 +83,43 @@ const RAW_MOCK_ROUNDS: MockRound[] = [
   },
 ];
 
-export const MOCK_ROUNDS: MockRound[] = RAW_MOCK_ROUNDS.map((round) => {
+function randomInRange(min: number, max: number): number {
+  return Math.random() * (max - min) + min;
+}
+
+function randomizeStreetViewRound(round: MockRound): MockRound {
+  const hotspot = URBAN_LOCATIONS[Math.floor(Math.random() * URBAN_LOCATIONS.length)];
+  const randomizedAnswer = {
+    lat: Number(
+      randomInRange(
+        hotspot.lat - RANDOM_COORDINATE_JITTER_DEGREES,
+        hotspot.lat + RANDOM_COORDINATE_JITTER_DEGREES
+      ).toFixed(6)
+    ),
+    lng: Number(
+      randomInRange(
+        hotspot.lng - RANDOM_COORDINATE_JITTER_DEGREES,
+        hotspot.lng + RANDOM_COORDINATE_JITTER_DEGREES
+      ).toFixed(6)
+    ),
+  };
+
+  return {
+    ...round,
+    location: `${hotspot.city}, ${hotspot.country}`,
+    hint: `Randomized urban coordinates near ${hotspot.city}.`,
+    answer: randomizedAnswer,
+    panoramaId: undefined,
+    streetViewPov: {
+      heading: Number(randomInRange(0, 360).toFixed(2)),
+      pitch: Number(randomInRange(RANDOM_PITCH_RANGE.min, RANDOM_PITCH_RANGE.max).toFixed(2)),
+    },
+  };
+}
+
+const roundSource = RANDOM_STREET_VIEW_ENABLED ? RAW_MOCK_ROUNDS.map(randomizeStreetViewRound) : RAW_MOCK_ROUNDS;
+
+export const MOCK_ROUNDS: MockRound[] = roundSource.map((round) => {
   const normalizedStreetView = normalizeStreetViewRoundInput(round);
 
   return {
