@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 import { GAME_CONFIG } from '../data/gameConfig';
 import { MOCK_ROUNDS } from '../data/mockRounds';
-import type { Coords, GamePhase, Pin, RoundOutcome } from '../types/game';
+import type { Coords, GamePhase, MapInteractionMode, Pin, RoundOutcome } from '../types/game';
 import { haversineKm } from '../utils/distance';
 import { ratingFromScore, scoreFromDistance } from '../utils/scoring';
 
@@ -12,6 +12,7 @@ type State = {
   phase: GamePhase;
   roundIndex: number;
   secondsRemaining: number;
+  mapInteractionMode: MapInteractionMode;
   pin: Pin;
   hintVisible: boolean;
   lastNavigationCommand: NavigationCommand;
@@ -20,7 +21,7 @@ type State = {
 };
 
 type Action =
-  | { type: 'START_GAME' }
+  | { type: 'START_GAME'; mapInteractionMode: MapInteractionMode }
   | { type: 'TICK' }
   | { type: 'SET_PIN'; coords: Coords }
   | { type: 'TOGGLE_HINT' }
@@ -33,6 +34,7 @@ const initialState: State = {
   phase: 'landing',
   roundIndex: 0,
   secondsRemaining: GAME_CONFIG.roundDurationSec,
+  mapInteractionMode: 'moving',
   pin: null,
   hintVisible: false,
   lastNavigationCommand: null,
@@ -71,6 +73,7 @@ function reducer(state: State, action: Action): State {
       return {
         ...initialState,
         phase: 'round',
+        mapInteractionMode: action.mapInteractionMode,
       };
 
     case 'TICK':
@@ -155,7 +158,10 @@ export function useGameState() {
     return () => clearInterval(id);
   }, [state.phase]);
 
-  const startGame = useCallback(() => dispatch({ type: 'START_GAME' }), []);
+  const startGame = useCallback(
+    (mapInteractionMode: MapInteractionMode) => dispatch({ type: 'START_GAME', mapInteractionMode }),
+    []
+  );
   const setPin = useCallback((coords: Coords) => dispatch({ type: 'SET_PIN', coords }), []);
   const toggleHint = useCallback(() => dispatch({ type: 'TOGGLE_HINT' }), []);
   const navigate = useCallback((direction: NavigationDirection) => {

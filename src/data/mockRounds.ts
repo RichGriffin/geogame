@@ -1,6 +1,7 @@
 import type { MockRound } from '../types/game';
 import { normalizeStreetViewRoundInput } from '../utils/streetView';
 import urbanLocationPool from './urbanLocationPool.json';
+import { GAME_CONFIG } from './gameConfig';
 
 const RANDOM_STREET_VIEW_ENABLED = import.meta.env.VITE_RANDOM_STREET_VIEW !== '0';
 const RANDOM_PITCH_RANGE = { min: -8, max: 8 };
@@ -14,6 +15,7 @@ type UrbanLocation = {
 };
 
 const URBAN_LOCATIONS = urbanLocationPool as UrbanLocation[];
+const TOTAL_ROUNDS = GAME_CONFIG.totalRounds;
 
 const RAW_MOCK_ROUNDS: MockRound[] = [
   {
@@ -118,21 +120,42 @@ function randomizeStreetViewRound(round: MockRound): MockRound {
   };
 }
 
-const roundSource = RANDOM_STREET_VIEW_ENABLED ? RAW_MOCK_ROUNDS.map(randomizeStreetViewRound) : RAW_MOCK_ROUNDS;
+function expandCuratedRoundsToTotal(rounds: MockRound[], totalRounds: number): MockRound[] {
+  if (rounds.length === 0 || totalRounds <= 0) {
+    return [];
+  }
 
-export const MOCK_ROUNDS: MockRound[] = roundSource.map((round) => {
+  return Array.from({ length: totalRounds }, (_, index) => ({
+    ...rounds[index % rounds.length],
+  }));
+}
+
+function generateRandomRounds(totalRounds: number): MockRound[] {
+  if (RAW_MOCK_ROUNDS.length === 0 || totalRounds <= 0) {
+    return [];
+  }
+
+  return Array.from({ length: totalRounds }, (_, index) => {
+    const templateRound = RAW_MOCK_ROUNDS[index % RAW_MOCK_ROUNDS.length];
+    return randomizeStreetViewRound(templateRound);
+  });
+}
+
+const roundSource = RANDOM_STREET_VIEW_ENABLED
+  ? generateRandomRounds(TOTAL_ROUNDS)
+  : expandCuratedRoundsToTotal(RAW_MOCK_ROUNDS, TOTAL_ROUNDS);
+
+export const MOCK_ROUNDS: MockRound[] = roundSource.map((round, index) => {
   const normalizedStreetView = normalizeStreetViewRoundInput(round);
 
   return {
     ...round,
+    id: index + 1,
     answer: normalizedStreetView.answer,
     ...(normalizedStreetView.panoramaId ? { panoramaId: normalizedStreetView.panoramaId } : {}),
     streetViewPov: normalizedStreetView.streetViewPov,
   };
 });
 
-export const LANDING_PANELS = [
-  MOCK_ROUNDS[1].imageUrl,
-  MOCK_ROUNDS[2].imageUrl,
-  MOCK_ROUNDS[3].imageUrl,
-];
+export const LANDING_PANELS =
+  MOCK_ROUNDS.length === 0 ? [] : [0, 1, 2].map((index) => MOCK_ROUNDS[index % MOCK_ROUNDS.length].imageUrl);

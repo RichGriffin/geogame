@@ -2,6 +2,8 @@ export type Coords = { lat: number; lng: number };
 
 export type GamePhase = 'landing' | 'round' | 'roundResult' | 'finalResults';
 
+export type MapInteractionMode = 'moving' | 'noMoving' | 'lockedView';
+
 export type StreetViewPov = {
   heading: number;
   pitch: number;
