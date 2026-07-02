@@ -39,7 +39,7 @@ Config values live in `src/data/gameConfig.ts`:
 |---|---|
 | `maxPointsPerRound` | 5000 |
 | `maxDistanceKm` | 20000 |
-| `totalRounds` | 5 |
+| `totalRounds` | 10 |
 | `roundDurationSec` | 120 |
 
 Decay is linear, not exponential — every km off costs the same amount of score no matter how close or far you already are. Since `maxDistanceKm` (20,000 km) is close to the antipodal distance on Earth, most guesses land well above zero:
