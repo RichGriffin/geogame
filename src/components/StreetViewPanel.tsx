@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Coords } from '../types/game';
+import type { Coords, MapInteractionMode } from '../types/game';
 import { loadMapsApi } from '../utils/mapsLoader';
 
 type NavigationDirection = 'up' | 'down' | 'left' | 'right' | 'center';
@@ -11,6 +11,7 @@ type StreetViewPanelProps = Readonly<{
   position: Coords;
   panoramaId?: string;
   defaultPov?: Pov;
+  mapInteractionMode: MapInteractionMode;
   navigationCommand?: NavigationCommand;
   onReady?: () => void;
   onUnavailableChange?: (isUnavailable: boolean) => void;
@@ -37,6 +38,7 @@ export function StreetViewPanel({
   position,
   panoramaId,
   defaultPov,
+  mapInteractionMode,
   navigationCommand,
   onReady,
   onUnavailableChange,
@@ -48,6 +50,9 @@ export function StreetViewPanel({
   const hasAutoFocusedRef = useRef(false);
   const [isReady, setIsReady] = useState(false);
   const [hasError, setHasError] = useState(false);
+
+  const movementAllowed = mapInteractionMode === 'moving';
+  const panningAndZoomAllowed = mapInteractionMode !== 'lockedView';
 
   useEffect(() => {
     let cancelled = false;
@@ -111,8 +116,10 @@ export function StreetViewPanel({
           pano: targetPanoId,
           pov: defaultPovRef.current,
           disableDefaultUI: true,
-          keyboardShortcuts: true,
-          clickToGo: true,
+          keyboardShortcuts: panningAndZoomAllowed,
+          clickToGo: movementAllowed,
+          scrollwheel: panningAndZoomAllowed,
+          disableDoubleClickZoom: !panningAndZoomAllowed,
           linksControl: false,
           addressControl: false,
           fullscreenControl: false,
@@ -168,7 +175,16 @@ export function StreetViewPanel({
       }
       panoramaRef.current = null;
     };
-  }, [defaultPov, onReady, onUnavailableChange, panoramaId, position]);
+  }, [
+    defaultPov,
+    mapInteractionMode,
+    movementAllowed,
+    onReady,
+    onUnavailableChange,
+    panningAndZoomAllowed,
+    panoramaId,
+    position,
+  ]);
 
   useEffect(() => {
     if (!navigationCommand) return;
@@ -208,28 +224,37 @@ export function StreetViewPanel({
 
     switch (navigationCommand.direction) {
       case 'up':
+        if (!movementAllowed) return;
         move(heading);
         return;
       case 'down':
+        if (!movementAllowed) return;
         move(heading + 180);
         return;
       case 'left':
+        if (!panningAndZoomAllowed) return;
         rotate(-25);
         return;
       case 'right':
+        if (!panningAndZoomAllowed) return;
         rotate(25);
         return;
       case 'center':
+        if (!panningAndZoomAllowed) return;
         panorama.setPov(defaultPovRef.current);
         return;
       default:
         return;
     }
-  }, [navigationCommand]);
+  }, [movementAllowed, navigationCommand, panningAndZoomAllowed]);
 
   return (
     <div className="absolute inset-0">
-      <div ref={containerRef} className="h-full w-full outline-none" tabIndex={-1} />
+      <div
+        ref={containerRef}
+        className={`h-full w-full outline-none ${panningAndZoomAllowed ? '' : 'pointer-events-none'}`}
+        tabIndex={-1}
+      />
       {!isReady && !hasError ? (
         <div className="absolute inset-0 bg-black/30" />
       ) : null}

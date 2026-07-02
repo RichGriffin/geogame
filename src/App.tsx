@@ -19,6 +19,7 @@ export default function App() {
           roundNumber={state.roundIndex + 1}
           secondsRemaining={state.secondsRemaining}
           pin={state.pin}
+          mapInteractionMode={state.mapInteractionMode}
           hintVisible={state.hintVisible}
           onPinPlace={game.setPin}
           onToggleHint={game.toggleHint}

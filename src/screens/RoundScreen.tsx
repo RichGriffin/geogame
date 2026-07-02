@@ -6,7 +6,7 @@ import { PillButton } from '../components/PillButton';
 import { RoundIndicator } from '../components/RoundIndicator';
 import { StreetViewPanel } from '../components/StreetViewPanel';
 import { Timer } from '../components/Timer';
-import type { MockRound, Pin } from '../types/game';
+import type { MapInteractionMode, MockRound, Pin } from '../types/game';
 
 type NavigationDirection = 'up' | 'down' | 'left' | 'right' | 'center';
 type NavigationCommand = { direction: NavigationDirection; sequence: number } | null;
@@ -16,10 +16,24 @@ type RoundWithStreetView = MockRound & {
 };
 const RANDOM_STREET_VIEW_ENABLED = import.meta.env.VITE_RANDOM_STREET_VIEW !== '0';
 
+function getModeLabel(mapInteractionMode: MapInteractionMode): string {
+  switch (mapInteractionMode) {
+    case 'moving':
+      return 'Mode: Moving';
+    case 'noMoving':
+      return 'Mode: No Moving';
+    case 'lockedView':
+      return 'Mode: No Move / No Pan / No Zoom';
+    default:
+      return 'Mode: Moving';
+  }
+}
+
 type RoundScreenProps = Readonly<{
   round: MockRound;
   roundNumber: number;
   secondsRemaining: number;
+  mapInteractionMode: MapInteractionMode;
   pin: Pin;
   hintVisible: boolean;
   onPinPlace: (coords: import('../types/game').Coords) => void;
@@ -32,6 +46,7 @@ export function RoundScreen({
   round,
   roundNumber,
   secondsRemaining,
+  mapInteractionMode,
   pin,
   hintVisible,
   onPinPlace,
@@ -42,6 +57,9 @@ export function RoundScreen({
   const [navigationCommand, setNavigationCommand] = useState<NavigationCommand>(null);
   const [fallbackActive, setFallbackActive] = useState(false);
   const roundWithStreetView = round as RoundWithStreetView;
+  const movementAllowed = mapInteractionMode === 'moving';
+  const rotationAllowed = mapInteractionMode !== 'lockedView';
+  const modeLabel = getModeLabel(mapInteractionMode);
 
   useEffect(() => {
     setNavigationCommand(null);
@@ -63,6 +81,7 @@ export function RoundScreen({
           panoramaId={roundWithStreetView.panoramaId}
           defaultPov={roundWithStreetView.streetViewPov}
           navigationCommand={navigationCommand}
+          mapInteractionMode={mapInteractionMode}
           onUnavailableChange={setFallbackActive}
         />
       )}
@@ -82,6 +101,9 @@ export function RoundScreen({
                 Street View unavailable - using fallback image
               </span>
             ) : null}
+            <span className="rounded-full border border-amber-300/30 bg-amber-900/30 px-3 py-1 text-xs text-amber-100">
+              {modeLabel}
+            </span>
           </div>
           <PillButton variant="hud" onClick={onToggleHint} className="rounded-xl px-4 py-2.5">
             <span className="flex items-center gap-2">
@@ -102,6 +124,8 @@ export function RoundScreen({
             <NavControls
               onNavigate={(dir) => {
                 if (fallbackActive) return;
+                if (!movementAllowed && (dir === 'up' || dir === 'down')) return;
+                if (!rotationAllowed && (dir === 'left' || dir === 'right' || dir === 'center')) return;
                 const command = onNavigate(dir);
                 setNavigationCommand((previous) =>
                   command ?? {
@@ -110,6 +134,7 @@ export function RoundScreen({
                   }
                 );
               }}
+              disabled={fallbackActive || mapInteractionMode === 'lockedView'}
             />
           </div>
           <div className="flex flex-1 flex-col items-end gap-2">
